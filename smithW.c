@@ -9,8 +9,9 @@
 #include <math.h>
 #include <omp.h>
 
-void similarityScore(int i, int j, int* matrix);
+void similarityScore(int i, int j, int* H, int* P);
 void printSimilarityMatrix(int* matrix);
+void printPredecessorMatrix(int* matrix);
 int matchMissmatchScore(int i, int j);
 
 
@@ -41,14 +42,22 @@ int main(int argc, char* argv[]) {
    int *H;
    H=malloc(m*n*sizeof(int));
 
+   //Allocates predecessor matrix P
+   int *P;
+   P=malloc(m*n*sizeof(int));
+
    //Calculates the similarity matrix
    for(int i=0;i<n;i++){//Lines
    	for(int j=0;j<m;j++){//Columns
-   		similarityScore(i,j,H);
+   		similarityScore(i,j,H,P);
    	}
    }
 
+   printf("\nSimilarity Matrix:\n");
    printSimilarityMatrix(H);
+   printf("\nPredecessor Matrix:\n");
+   printPredecessorMatrix(P);
+
    //Frees similarity matrix H
    free(H);
 
@@ -60,7 +69,7 @@ int main(int argc, char* argv[]) {
  * Function:    SimilarityScore
  * Purpose:     Calculate  the maximum Similarity-Score H(i,j)
  */
-void similarityScore(int i, int j, int* matrix) {
+void similarityScore(int i, int j, int* H, int* P) {
 
 	int up, left, diag;
 
@@ -69,7 +78,7 @@ void similarityScore(int i, int j, int* matrix) {
 		up=gapScore;
 	}
 	else{
-		up=matrix[m*(i-1)+j]+gapScore;
+		up=H[m*(i-1)+j]+gapScore;
 	}
 
 	//Get element on the left
@@ -77,7 +86,7 @@ void similarityScore(int i, int j, int* matrix) {
 		left=gapScore;
 	}
 	else{
-		left=matrix[m*i+j-1]+gapScore;
+		left=H[m*i+j-1]+gapScore;
 	}
 
 	//Get element on the diagonal
@@ -85,23 +94,28 @@ void similarityScore(int i, int j, int* matrix) {
 		diag=matchMissmatchScore(i,j);
 	}
 	else{
-		diag=matrix[m*(i-1)+j-1]+matchMissmatchScore(i,j);
+		diag=H[m*(i-1)+j-1]+matchMissmatchScore(i,j);
 	}
 
 	//Calculates the maximum
 	int max=0;
+	int pred=0;
 	if(up>max){
 		max=up;
+		pred=1;
 	}
 	if(left>max){
 		max=left;
+		pred=2;
 	}
 	if(diag>max){
 		max=diag;
+		pred=3;
 	}
 
-	//Inserts the value in the similarity matrix
-	matrix[m*i+j]=max;
+	//Inserts the value in the similarity adn predecessor matrixes
+	H[m*i+j]=max;
+	P[m*i+j]=pred;
 
 }  /* End of printSimilarityMatrix */
 
@@ -119,6 +133,32 @@ void printSimilarityMatrix(int* matrix) {
    }
 
 }  /* End of similarityScore */
+
+ /*--------------------------------------------------------------------
+ * Function:    printPredecessorMatrix
+ * Purpose:     Print predecessor matrix
+ */
+void printPredecessorMatrix(int* matrix) {
+
+    for(int i=0;i<n;i++){//Lines
+   		for(int j=0;j<m;j++){
+   			if(matrix[m*i+j]==1){
+   				printf("↑ ");
+   			}
+   			else if(matrix[m*i+j]==2){
+   				printf("← ");
+   			}
+   			else if(matrix[m*i+j]==3){
+   				printf("↖ ");
+   			}
+   			else{
+   				printf("- ");
+   			}
+   		}
+   		printf("\n");
+   }
+
+}  /* End of printPredecessorMatrix */
 
 /*--------------------------------------------------------------------
  * Function:    matchMissmatchScore
