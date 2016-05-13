@@ -108,13 +108,6 @@ int main(int argc, char* argv[]) {
     printf("\nPredecessor Matrix:\n");
     printPredecessorMatrix(P, B);
     
-    printf("\nMaxPos: %d\n", maxPos);
-
-    printf("\nPosition Matrix:\n");
-    printPositionMatrix();
-
-    printf("\nPredecessor Backtrack Matrix:\n");
-    printMatrix(B);
     //Frees similarity matrixs
     free(H);
     free(P);
@@ -226,7 +219,7 @@ void backtrack(int* B, int maxPos) {
     //sets start '0' to '-1'
     B[maxPos] = PATH;
 
-}
+}  /* End of backtrack */
 
 /*--------------------------------------------------------------------
  * Function:    printMatrix
