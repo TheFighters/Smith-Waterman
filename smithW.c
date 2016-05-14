@@ -304,6 +304,6 @@ void printPositionMatrix(void) {
 /*--------------------------------------------------------------------
  * External References:
  * http://vlab.amrita.edu/?sub=3&brch=274&sim=1433&cnt=1
+ * http://pt.slideshare.net/avrilcoghlan/the-smith-waterman-algorithm
  * http://baba.sourceforge.net/
- * 
  */
