@@ -63,9 +63,9 @@ int m = 11; //Columns - Size of string a
 int n = 7;  //Lines - Size of string b
 
 //Defines scores
-int matchScore = 5; //same letter ↖
-int missmatchScore = -3; //change letter
-int gapScore = -4;
+int matchScore = 5;
+int missmatchScore = -3;
+int gapScore = -4; 
 
 //Strings over the Alphabet Sigma
 char a[] = {'C', 'G', 'T', 'G', 'A', 'A', 'T', 'T', 'C', 'A', 'T'};
@@ -157,20 +157,34 @@ void similarityScore(int i, int j, int* H, int* P, int* B, int* maxPos) {
     }
 
     //Calculates the maximum
-    int max = 0;
+    int max = NONE;
     int pred = NONE;
     int predPos = NONE;
-    if (up > max) {
+    /* === Matrix ===
+     * a[0] ... a[n] 
+     * b[0]
+     * ...
+     * b[n]
+     *
+     * generate 'a' from 'b', if '←' insert e '↑' remove
+     * a=GAATTCA
+     * b=GACTT-A
+     * 
+     * generate 'b' from 'a', if '←' insert e '↑' remove
+     * b=GACTT-A
+     * a=GAATTCA
+    */
+    if (up > max) { //remove letter ↑ 
         max = up;
         pred = UP;
         predPos = index - m;
     }
-    if (left > max) {
+    if (left > max) { //insert letter ←
         max = left;
         pred = LEFT;
         predPos = index - 1;
     }
-    if (diag > max) {
+    if (diag > max) { //same letter ↖
         max = diag;
         pred = DIAGONAL;
         predPos = index - m - 1;
@@ -252,15 +266,15 @@ void printPredecessorMatrix(int* matrix, int* B) {
             path = B[index] + 1;
             if (matrix[index] == UP) {
                 if (path) printf("↑ ");
-                else printf(BOLDGREEN "↑ " RESET);
+                else printf(BOLDRED "↑ " RESET);
             }
             else if (matrix[index] == LEFT) {
                 if (path) printf("← ");
-                else printf(BOLDGREEN "← " RESET);
+                else printf(BOLDRED "← " RESET);
             }
             else if (matrix[index] == DIAGONAL) {
                 if (path) printf("↖ ");
-                else printf(BOLDGREEN "↖ " RESET);
+                else printf(BOLDRED "↖ " RESET);
             }
             else {
                 printf("- ");
@@ -290,4 +304,6 @@ void printPositionMatrix(void) {
 /*--------------------------------------------------------------------
  * External References:
  * http://vlab.amrita.edu/?sub=3&brch=274&sim=1433&cnt=1
+ * http://baba.sourceforge.net/
+ * 
  */
