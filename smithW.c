@@ -34,6 +34,7 @@
 /*--------------------------------------------------------------------
  * Constants
  */
+#define NONE 0
 #define UP 1
 #define LEFT 2
 #define DIAGONAL 3
@@ -62,8 +63,8 @@ int m = 11; //Columns - Size of string a
 int n = 7;  //Lines - Size of string b
 
 //Defines scores
-int matchScore = 5;
-int missmatchScore = -3;
+int matchScore = 5; //same letter ↖
+int missmatchScore = -3; //change letter
 int gapScore = -4;
 
 //Strings over the Alphabet Sigma
@@ -108,10 +109,13 @@ int main(int argc, char* argv[]) {
     printf("\nPredecessor Matrix:\n");
     printPredecessorMatrix(P, B);
     
+    printMatrix(B);
+
     //Frees similarity matrixs
     free(H);
     free(P);
     free(B);
+
 
     return 0;
 }  /* End of main */
@@ -154,7 +158,8 @@ void similarityScore(int i, int j, int* H, int* P, int* B, int* maxPos) {
 
     //Calculates the maximum
     int max = 0;
-    int pred, predPos;
+    int pred = NONE;
+    int predPos = NONE;
     if (up > max) {
         max = up;
         pred = UP;
@@ -170,7 +175,6 @@ void similarityScore(int i, int j, int* H, int* P, int* B, int* maxPos) {
         pred = DIAGONAL;
         predPos = index - m - 1;
     }
-
     //Inserts the value in the similarity and predecessor matrixes
     H[index] = max;
     P[index] = pred;
