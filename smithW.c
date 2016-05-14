@@ -109,8 +109,6 @@ int main(int argc, char* argv[]) {
     printf("\nPredecessor Matrix:\n");
     printPredecessorMatrix(P, B);
     
-    printMatrix(B);
-
     //Frees similarity matrixs
     free(H);
     free(P);
