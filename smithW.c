@@ -60,7 +60,7 @@ void printMatrix(int* matrix);
 void printPredecessorMatrix(int* matrix, int* B);
 void printPositionMatrix(void);
 int nElement(int i);
-void calcElement(int i, int j, int *si, int *sj);
+void calcIndex(int i, int j, int *si, int *sj);
 
 /* End of prototypes */
 
@@ -108,15 +108,16 @@ int main(int argc, char* argv[]) {
     int i, j;
 
     int nDiag = m+n-1;
-    #pragma omp parallel num_threads(thread_count)
+    #pragma omp parallel num_threads(thread_count) private(i)
     {
         for (i = 0; i < nDiag; ++i)
         {
+        	int nEle = nElement(i);
             #pragma omp for
-                for (j = 0; j < nElement(i); ++j)
+                for (j = 0; j < nEle; ++j)
                 {
                     int si, sj;
-                    calcElement(i, j, &si, &sj);
+                    calcIndex(i, j, &si, &sj);
                     similarityScore(si, sj, H, P, B, &maxPos);
                 }
         }
@@ -143,13 +144,17 @@ int main(int argc, char* argv[]) {
  * Purpose:     Calculate the number of i-diagonal elements
  */
 int nElement(int i) {
-    if (i < m && i < n)
+    if (i < m && i < n){
+    	//Number of elements in the diagonal is increasing
         return i+1;
+	}
     else if(i < max(m,n)){
+    	//Number of elements in the diagonal is stable
         int min = min(m,n);
         return min;
     }
     else {
+    	//Number of elements in the diagonal is decreasing
         int min = min(m,n);
         return 2*min - i + abs(m-n) - 1;
     }
@@ -159,7 +164,7 @@ int nElement(int i) {
  * Function:    calcElement
  * Purpose:     Calculate the position of (si, sj)-element
  */
-void calcElement(int i, int j, int *si, int *sj) {
+void calcIndex(int i, int j, int *si, int *sj) {
     // Calculate the first element of diagonal
     if (i < n) {
         *si = i;
