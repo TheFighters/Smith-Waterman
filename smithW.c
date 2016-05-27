@@ -42,13 +42,6 @@
 
 /* End of constants */
 
- /*--------------------------------------------------------------------
- * Helpers
- */
-#define min(x, y) (((x) < (y)) ? (x) : (y))
-#define max(a,b) ((a) > (b) ? a : b)
-
-/* End of Helpers */
 
 /*--------------------------------------------------------------------
  * Functions Prototypes
@@ -59,9 +52,6 @@ void backtrack(int* B, int maxPos);
 void printMatrix(int* matrix);
 void printPredecessorMatrix(int* matrix, int* B);
 void printPositionMatrix(void);
-int nElement(int i);
-void calcIndex(int i, int j, int *si, int *sj);
-
 /* End of prototypes */
 
 
@@ -87,7 +77,6 @@ char b[] = {'G', 'A', 'C', 'T', 'T', 'A', 'C'};
  * Function:    main
  */
 int main(int argc, char* argv[]) {
-    int thread_count = strtol(argv[1], NULL, 10); 
 
     //Allocates similarity matrix H
     int *H;
@@ -106,20 +95,9 @@ int main(int argc, char* argv[]) {
 
     //Calculates the similarity matrix
     int i, j;
-
-    int nDiag = m+n-1;
-    #pragma omp parallel num_threads(thread_count) private(i)
-    {
-        for (i = 0; i < nDiag; ++i)
-        {
-        	int nEle = nElement(i);
-            #pragma omp for
-                for (j = 0; j < nEle; ++j)
-                {
-                    int si, sj;
-                    calcIndex(i, j, &si, &sj);
-                    similarityScore(si, sj, H, P, B, &maxPos);
-                }
+    for (i = 0; i < n; i++) { //Lines
+        for (j = 0; j < m; j++) { //Columns
+            similarityScore(i, j, H, P, B, &maxPos);
         }
     }
 
@@ -130,6 +108,7 @@ int main(int argc, char* argv[]) {
 
     printf("\nPredecessor Matrix:\n");
     printPredecessorMatrix(P, B);
+    
     //Frees similarity matrixs
     free(H);
     free(P);
@@ -139,48 +118,10 @@ int main(int argc, char* argv[]) {
     return 0;
 }  /* End of main */
 
-/*--------------------------------------------------------------------
- * Function:    nElement
- * Purpose:     Calculate the number of i-diagonal elements
- */
-int nElement(int i) {
-    if (i < m && i < n){
-    	//Number of elements in the diagonal is increasing
-        return i+1;
-	}
-    else if(i < max(m,n)){
-    	//Number of elements in the diagonal is stable
-        int min = min(m,n);
-        return min;
-    }
-    else {
-    	//Number of elements in the diagonal is decreasing
-        int min = min(m,n);
-        return 2*min - i + abs(m-n) - 1;
-    }
-}
-
-/*--------------------------------------------------------------------
- * Function:    calcElement
- * Purpose:     Calculate the position of (si, sj)-element
- */
-void calcIndex(int i, int j, int *si, int *sj) {
-    // Calculate the first element of diagonal
-    if (i < n) {
-        *si = i;
-        *sj = 0;
-    } else {
-        *si = n-1;
-        *sj = i-n+1;
-    }
-    // Calculate the current element of diagonal
-    *si -= j;
-    *sj += j;
-}
 
 /*--------------------------------------------------------------------
  * Function:    SimilarityScore
- * Purpose:     Calculate the maximum Similarity-Score H(i,j)
+ * Purpose:     Calculate  the maximum Similarity-Score H(i,j)
  */
 void similarityScore(int i, int j, int* H, int* P, int* B, int* maxPos) {
 
@@ -255,12 +196,11 @@ void similarityScore(int i, int j, int* H, int* P, int* B, int* maxPos) {
     // if ((i != 0 && j != 0) || i == 0 && pred == LEFT || j == 0 && pred == UP)
         B[index] = predPos;
     // else
-        // B[index] = 0;
+    //     B[index] = 0;
 
     //Updates maximum score to be used as seed on backtrack 
     if (max > H[*maxPos]) {
-        #pragma omp critical
-            *maxPos = index;
+        *maxPos = index;
     }
 
 }  /* End of similarityScore */
