@@ -137,27 +137,18 @@ int main(int argc, char* argv[]) {
     #pragma omp parallel num_threads(thread_count) \
     default(none) shared(H, P, maxPos, nDiag) private(nEle, i, si, sj, ai, aj)
     {
-        // printf("%lld %lld", i, j);
         int my_rank = omp_get_thread_num();
         for (i = 1; i <= nDiag; ++i)
         {
             nEle = nElement(i);
-
             calcFirstDiagElement(&i, &si, &sj);
-            printf("3-i:%lld nEle:%lld\n", i, nEle);
-            //printf("First Element of diagonal %lld is (%lld,%lld)\n",i, si,sj);
             #pragma omp for
             for (j = 1; j <= nEle; ++j)
             {
-                printf("-%d| nD:%lld \t nE:%lld \t i:%lld \t j:%lld \t si:%lld \t sj:%lld\n", my_rank, nDiag, nEle, i, j, si, sj);
                 ai = si - j + 1;
                 aj = sj + j - 1;
                 similarityScore(ai, aj, H, P, &maxPos);
-                printf("+%d| nD:%lld \t nE:%lld \t i:%lld \t j:%lld \t si:%lld \t sj:%lld\t ai:%lld\t aj:%lld\n", my_rank, nDiag, nEle, i, j, si, sj, ai, aj);
-
             }
-            if (my_rank == 0)
-                printf("_________________________________________________________________\n");
         }
     }
 
