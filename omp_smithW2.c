@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
     b[5] =   'A';
     b[6] =   'C';
 
-    
+
     //Start position for backtrack
     long long int maxPos = 0;
     //Calculates the similarity matrix
@@ -128,30 +128,36 @@ int main(int argc, char* argv[]) {
     //Gets Initial time
     double initialTime = omp_get_wtime();
 
-    long long int si, sj;
+    long long int si, sj, ai, aj;
 
     //Because now we have zeros ((m-1) + (n-1) - 1)
     long long int nDiag = m + n - 3;
     long long int nEle;
-    
+
     #pragma omp parallel num_threads(thread_count) \
-                         default(none) shared(H, P, maxPos, nDiag) private(nEle, i, j, si, sj)
+    default(none) shared(H, P, maxPos, nDiag) private(nEle, i, si, sj, ai, aj)
     {
         // printf("%lld %lld", i, j);
         int my_rank = omp_get_thread_num();
-        for (i = 1; i < nDiag; ++i)
+        for (i = 1; i <= nDiag; ++i)
         {
             nEle = nElement(i);
+
             calcFirstDiagElement(&i, &si, &sj);
+            printf("3-i:%lld nEle:%lld\n", i, nEle);
             //printf("First Element of diagonal %lld is (%lld,%lld)\n",i, si,sj);
             #pragma omp for
-            for (j = 1; j < nEle; ++j)
+            for (j = 1; j <= nEle; ++j)
             {
-                si -= j;
-                sj += j;
-                similarityScore(si, sj, H, P, &maxPos);
-                printf("my_rank:%d si:%lld sj:%lld \t i:%lld \t j:%lld\n",si,sj,i,j);
+                printf("-%d| nD:%lld \t nE:%lld \t i:%lld \t j:%lld \t si:%lld \t sj:%lld\n", my_rank, nDiag, nEle, i, j, si, sj);
+                ai = si - j + 1;
+                aj = sj + j - 1;
+                similarityScore(ai, aj, H, P, &maxPos);
+                printf("+%d| nD:%lld \t nE:%lld \t i:%lld \t j:%lld \t si:%lld \t sj:%lld\t ai:%lld\t aj:%lld\n", my_rank, nDiag, nEle, i, j, si, sj, ai, aj);
+
             }
+            if (my_rank == 0)
+                printf("_________________________________________________________________\n");
         }
     }
 
@@ -187,17 +193,17 @@ int main(int argc, char* argv[]) {
 long long int nElement(long long int i) {
     if (i < m && i < n) {
         //Number of elements in the diagonal is increasing
-        return i + 1;
+        return i;
     }
     else if (i < max(m, n)) {
         //Number of elements in the diagonal is stable
         long int min = min(m, n);
-        return min;
+        return min - 1;
     }
     else {
         //Number of elements in the diagonal is decreasing
         long int min = min(m, n);
-        return 2 * min - i + abs(m - n) - 1;
+        return 2 * min - i + abs(m - n) - 2;
     }
 }
 
@@ -209,10 +215,10 @@ void calcFirstDiagElement(long long int *i, long long int *si, long long int *sj
     // Calculate the first element of diagonal
     if (*i < n) {
         *si = *i;
-        *sj = 0;
+        *sj = 1;
     } else {
         *si = n - 1;
-        *sj = *i - n + 1;
+        *sj = *i - n + 2;
     }
 }
 
