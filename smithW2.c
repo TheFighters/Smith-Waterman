@@ -25,7 +25,7 @@
 #define LEFT 2
 #define DIAGONAL 3
 
-#define DEBUG
+// #define DEBUG
 
 /* End of constants */
 
@@ -63,8 +63,8 @@ char *a, *b;
  * Function:    main
  */
 int main(int argc, char* argv[]) {
-    // m = strtoll(argv[1], NULL, 10);
-    // n = strtoll(argv[2], NULL, 10);
+    m = strtoll(argv[1], NULL, 10);
+    n = strtoll(argv[2], NULL, 10);
     
     #ifdef DEBUG
     printf("\nMatrix[%lld][%lld]\n", n, m);
@@ -88,32 +88,34 @@ int main(int argc, char* argv[]) {
 
 
     //Gen rand arrays a and b
-    //generate();
-    a[0] =   'C';
-    a[1] =   'G';
-    a[2] =   'T';
-    a[3] =   'G';
-    a[4] =   'A';
-    a[5] =   'A';
-    a[6] =   'T';
-    a[7] =   'T';
-    a[8] =   'C';
-    a[9] =   'A';
-    a[10] =  'T';
+    generate();
+    // a[0] =   'C';
+    // a[1] =   'G';
+    // a[2] =   'T';
+    // a[3] =   'G';
+    // a[4] =   'A';
+    // a[5] =   'A';
+    // a[6] =   'T';
+    // a[7] =   'T';
+    // a[8] =   'C';
+    // a[9] =   'A';
+    // a[10] =  'T';
 
-    b[0] =   'G';
-    b[1] =   'A';
-    b[2] =   'C';
-    b[3] =   'T';
-    b[4] =   'T';
-    b[5] =   'A';
-    b[6] =   'C';
+    // b[0] =   'G';
+    // b[1] =   'A';
+    // b[2] =   'C';
+    // b[3] =   'T';
+    // b[4] =   'T';
+    // b[5] =   'A';
+    // b[6] =   'C';
 
     //Start position for backtrack
     long long int maxPos = 0;
 
     //Calculates the similarity matrix
     long long int i, j;
+
+    double initialTime = omp_get_wtime();
     
     for (i = 1; i < n; i++) { //Lines
         for (j = 1; j < m; j++) { //Columns
@@ -122,6 +124,10 @@ int main(int argc, char* argv[]) {
     }
 
     backtrack(P, maxPos);
+
+    //Gets final time
+    double finalTime = omp_get_wtime();
+    printf("\nElapsed time: %f\n\n", finalTime - initialTime);
 
     #ifdef DEBUG
     printf("\nSimilarity Matrix:\n");

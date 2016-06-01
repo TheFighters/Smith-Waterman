@@ -32,7 +32,7 @@
 #define min(x, y) (((x) < (y)) ? (x) : (y))
 #define max(a,b) ((a) > (b) ? a : b)
 
-#define DEBUG
+// #define DEBUG
 /* End of Helpers */
 
 
@@ -73,8 +73,8 @@ char *a, *b;
  */
 int main(int argc, char* argv[]) {
     int thread_count = strtol(argv[1], NULL, 10);
-    // m = strtoll(argv[2], NULL, 10);
-    // n = strtoll(argv[3], NULL, 10);
+    m = strtoll(argv[2], NULL, 10);
+    n = strtoll(argv[3], NULL, 10);
 
 #ifdef DEBUG
     printf("\nMatrix[%lld][%lld]\n", n, m);
@@ -98,26 +98,26 @@ int main(int argc, char* argv[]) {
 
 
     //Gen rand arrays a and b
-    // generate();
-    a[0] =   'C';
-    a[1] =   'G';
-    a[2] =   'T';
-    a[3] =   'G';
-    a[4] =   'A';
-    a[5] =   'A';
-    a[6] =   'T';
-    a[7] =   'T';
-    a[8] =   'C';
-    a[9] =   'A';
-    a[10] =  'T';
+    generate();
+    // a[0] =   'C';
+    // a[1] =   'G';
+    // a[2] =   'T';
+    // a[3] =   'G';
+    // a[4] =   'A';
+    // a[5] =   'A';
+    // a[6] =   'T';
+    // a[7] =   'T';
+    // a[8] =   'C';
+    // a[9] =   'A';
+    // a[10] =  'T';
 
-    b[0] =   'G';
-    b[1] =   'A';
-    b[2] =   'C';
-    b[3] =   'T';
-    b[4] =   'T';
-    b[5] =   'A';
-    b[6] =   'C';
+    // b[0] =   'G';
+    // b[1] =   'A';
+    // b[2] =   'C';
+    // b[3] =   'T';
+    // b[4] =   'T';
+    // b[5] =   'A';
+    // b[6] =   'C';
 
 
     //Start position for backtrack
@@ -137,7 +137,6 @@ int main(int argc, char* argv[]) {
     #pragma omp parallel num_threads(thread_count) \
     default(none) shared(H, P, maxPos, nDiag) private(nEle, i, si, sj, ai, aj)
     {
-        int my_rank = omp_get_thread_num();
         for (i = 1; i <= nDiag; ++i)
         {
             nEle = nElement(i);
@@ -156,7 +155,7 @@ int main(int argc, char* argv[]) {
 
     //Gets final time
     double finalTime = omp_get_wtime();
-    printf("\nElapsed time: %f\n", finalTime - initialTime);
+    printf("\nElapsed time: %f\n\n", finalTime - initialTime);
 
 #ifdef DEBUG
     printf("\nSimilarity Matrix:\n");
