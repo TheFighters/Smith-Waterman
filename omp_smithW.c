@@ -39,8 +39,16 @@
 #define LEFT 2
 #define DIAGONAL 3
 #define PATH -1
+#define asd 12
 
-/* End of constants */
+//Defines size of strings to be compared
+#define m 10000 		//Columns - Size of string a
+#define n 10000		  	//Lines - Size of string b
+
+//Defines scores
+#define matchScore 5;
+#define missmatchScore -3;
+#define gapScore -4; 
 
  /*--------------------------------------------------------------------
  * Helpers
@@ -68,18 +76,15 @@ void calcIndex(int i, int j, int *si, int *sj);
 /*--------------------------------------------------------------------
  * Global Variables
  */
-//Defines size of strings to be compared
-int m = 11; //Columns - Size of string a
-int n = 7;  //Lines - Size of string b
-
-//Defines scores
-int matchScore = 5;
-int missmatchScore = -3;
-int gapScore = -4; 
 
 //Strings over the Alphabet Sigma
-char a[] = {'C', 'G', 'T', 'G', 'A', 'A', 'T', 'T', 'C', 'A', 'T'};
-char b[] = {'G', 'A', 'C', 'T', 'T', 'A', 'C'};
+//char a[] = {'C', 'G', 'T', 'G', 'A', 'A', 'T', 'T', 'C', 'A', 'T'};
+//char b[] = {'G', 'A', 'C', 'T', 'T', 'A', 'C'};
+char a[m];
+char b[n]; 
+
+//Defines iterators
+int i, j;
 
 /* End of global variables */
 
@@ -88,6 +93,32 @@ char b[] = {'G', 'A', 'C', 'T', 'T', 'A', 'C'};
  */
 int main(int argc, char* argv[]) {
     int thread_count = strtol(argv[1], NULL, 10); 
+
+    //Generates the values of a
+	for(i=0;i<m;i++){
+		int aux=rand()%4;
+		if(aux==0)
+			a[i]='A';
+		else if(aux==2)
+			a[i]='C';
+		else if(aux==3)
+			a[i]='G';
+		else
+			a[i]='T';
+	}
+
+	//Generates the values of b
+	for(i=0;i<n;i++){
+		int aux=rand()%4;
+		if(aux==0)
+			b[i]='A';
+		else if(aux==2)
+			b[i]='C';
+		else if(aux==3)
+			b[i]='G';
+		else
+			b[i]='T';
+	}
 
     //Allocates similarity matrix H
     int *H;
@@ -104,9 +135,11 @@ int main(int argc, char* argv[]) {
     //Start position for backtrack
     int maxPos = 0;
 
-    //Calculates the similarity matrix
-    int i, j;
+    //Gets Initial time
+    double initialTime = omp_get_wtime();
 
+
+    //Calculates the similarity Matrix
     int nDiag = m+n-1;
     #pragma omp parallel num_threads(thread_count) private(i)
     {
@@ -125,11 +158,15 @@ int main(int argc, char* argv[]) {
 
     backtrack(B, maxPos);
 
-    printf("\nSimilarity Matrix:\n");
-    printMatrix(H);
+    //Gets final time
+    double finalTime = omp_get_wtime();
+    printf("\nElapsed time: %f\n",finalTime-initialTime);
 
-    printf("\nPredecessor Matrix:\n");
-    printPredecessorMatrix(P, B);
+    //printf("\nSimilarity Matrix:\n");
+    //printMatrix(H);
+
+    //printf("\nPredecessor Matrix:\n");
+    //printPredecessorMatrix(P, B);
     //Frees similarity matrixs
     free(H);
     free(P);
@@ -271,8 +308,9 @@ void similarityScore(int i, int j, int* H, int* P, int* B, int* maxPos) {
  * Purpose:     Similarity function on the alphabet for match/missmatch
  */
 int matchMissmatchScore(int i, int j) {
-    if (a[j] == b[i])
+    if (a[j] == b[i]){
         return matchScore;
+    }
     else
         return missmatchScore;
 }  /* End of matchMissmatchScore */
