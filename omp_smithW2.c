@@ -134,9 +134,11 @@ int main(int argc, char* argv[]) {
     long long int nDiag = m + n - 3;
     long long int nEle;
     
-    #pragma omp parallel num_threads(thread_count) default(none) private(i, j, si, sj, )
+    #pragma omp parallel num_threads(thread_count) \
+                         default(none) shared(H, P, maxPos, nDiag) private(nEle, i, j, si, sj)
     {
         // printf("%lld %lld", i, j);
+        int my_rank = omp_get_thread_num();
         for (i = 1; i < nDiag; ++i)
         {
             nEle = nElement(i);
@@ -148,7 +150,7 @@ int main(int argc, char* argv[]) {
                 si -= j;
                 sj += j;
                 similarityScore(si, sj, H, P, &maxPos);
-                printf("si=%lld -\t sj=%lld \t i=%lld \t j=%lld\n",si,sj,i,j);
+                printf("my_rank:%d si:%lld sj:%lld \t i:%lld \t j:%lld\n",si,sj,i,j);
             }
         }
     }
