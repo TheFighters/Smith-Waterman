@@ -1,0 +1,1 @@
+Know if smithW or smithW2 is working and delete the non-working code

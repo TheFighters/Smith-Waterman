@@ -8,67 +8,46 @@
 #include <stdlib.h>
 #include <math.h>
 #include <omp.h>
+#include <time.h>
 
 /*--------------------------------------------------------------------
  * Text Tweaks
  */
 #define RESET   "\033[0m"
-#define BLACK   "\033[30m"      /* Black */
-#define RED     "\033[31m"      /* Red */
-#define GREEN   "\033[32m"      /* Green */
-#define YELLOW  "\033[33m"      /* Yellow */
-#define BLUE    "\033[34m"      /* Blue */
-#define MAGENTA "\033[35m"      /* Magenta */
-#define CYAN    "\033[36m"      /* Cyan */
-#define WHITE   "\033[37m"      /* White */
-#define BOLDBLACK   "\033[1m\033[30m"      /* Bold Black */
-#define BOLDRED     "\033[1m\033[31m"      /* Bold Red */
-#define BOLDGREEN   "\033[1m\033[32m"      /* Bold Green */
-#define BOLDYELLOW  "\033[1m\033[33m"      /* Bold Yellow */
-#define BOLDBLUE    "\033[1m\033[34m"      /* Bold Blue */
-#define BOLDMAGENTA "\033[1m\033[35m"      /* Bold Magenta */
-#define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
-#define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
+#define BOLDRED "\033[1m\033[31m"      /* Bold Red */
 /* End of text tweaks */
 
 /*--------------------------------------------------------------------
  * Constants
  */
+#define PATH -1
 #define NONE 0
 #define UP 1
 #define LEFT 2
 #define DIAGONAL 3
-#define PATH -1
-#define asd 12
+/* End of constants */
 
-//Defines size of strings to be compared
-#define m 10000 		//Columns - Size of string a
-#define n 10000		  	//Lines - Size of string b
-
-//Defines scores
-#define matchScore 5;
-#define missmatchScore -3;
-#define gapScore -4; 
-
- /*--------------------------------------------------------------------
- * Helpers
- */
+/*--------------------------------------------------------------------
+* Helpers
+*/
 #define min(x, y) (((x) < (y)) ? (x) : (y))
 #define max(a,b) ((a) > (b) ? a : b)
 
+// #define DEBUG
 /* End of Helpers */
+
 
 /*--------------------------------------------------------------------
  * Functions Prototypes
  */
-void similarityScore(int i, int j, int* H, int* P, int* B, int* maxPos);
-int matchMissmatchScore(int i, int j);
-void backtrack(int* B, int maxPos);
+void similarityScore(long long int i, long long int j, int* H, int* P, long long int* maxPos);
+int matchMissmatchScore(long long int i, long long int j);
+void backtrack(int* P, long long int maxPos);
 void printMatrix(int* matrix);
-void printPredecessorMatrix(int* matrix, int* B);
-void printPositionMatrix(void);
-int nElement(int i);
-void calcIndex(int i, int j, int *si, int *sj);
+void printPredecessorMatrix(int* matrix);
+void generate(void);
+long long int nElement(long long int i);
+void calcFirstDiagElement(long long int *i, long long int *si, long long int *sj);
 
 /* End of prototypes */
 
@@ -76,15 +55,17 @@ void calcIndex(int i, int j, int *si, int *sj);
 /*--------------------------------------------------------------------
  * Global Variables
  */
+//Defines size of strings to be compared
+long long int m ; //Columns - Size of string a
+long long int n ;  //Lines - Size of string b
+
+//Defines scores
+int matchScore = 5;
+int missmatchScore = -3;
+int gapScore = -4;
 
 //Strings over the Alphabet Sigma
-//char a[] = {'C', 'G', 'T', 'G', 'A', 'A', 'T', 'T', 'C', 'A', 'T'};
-//char b[] = {'G', 'A', 'C', 'T', 'T', 'A', 'C'};
-char a[m];
-char b[n]; 
-
-//Defines iterators
-int i, j;
+char *a, *b;
 
 /* End of global variables */
 
@@ -92,86 +73,110 @@ int i, j;
  * Function:    main
  */
 int main(int argc, char* argv[]) {
-    int thread_count = strtol(argv[1], NULL, 10); 
+    int thread_count = strtol(argv[1], NULL, 10);
+    m = strtoll(argv[2], NULL, 10);
+    n = strtoll(argv[3], NULL, 10);
 
-    //Generates the values of a
-	for(i=0;i<m;i++){
-		int aux=rand()%4;
-		if(aux==0)
-			a[i]='A';
-		else if(aux==2)
-			a[i]='C';
-		else if(aux==3)
-			a[i]='G';
-		else
-			a[i]='T';
-	}
+#ifdef DEBUG
+    printf("\nMatrix[%lld][%lld]\n", n, m);
+#endif
 
-	//Generates the values of b
-	for(i=0;i<n;i++){
-		int aux=rand()%4;
-		if(aux==0)
-			b[i]='A';
-		else if(aux==2)
-			b[i]='C';
-		else if(aux==3)
-			b[i]='G';
-		else
-			b[i]='T';
-	}
+    //Allocates a and b
+    a = malloc(m * sizeof(char));
+    b = malloc(n * sizeof(char));
+
+    //Because now we have zeros
+    m++;
+    n++;
 
     //Allocates similarity matrix H
     int *H;
-    H = malloc(m * n * sizeof(int*));
+    H = calloc(m * n, sizeof(int));
 
     //Allocates predecessor matrix P
     int *P;
-    P = malloc(m * n * sizeof(int*));
+    P = calloc(m * n, sizeof(int));
 
-    //Allocates predecessor matrix B
-    int *B;
-    B = malloc(m * n * sizeof(int*));
+
+    //Gen rand arrays a and b
+    generate();
+
+    //Uncomment this to test the sequence available at 
+    //http://vlab.amrita.edu/?sub=3&brch=274&sim=1433&cnt=1
+    // OBS: m=11 n=7
+    // a[0] =   'C';
+    // a[1] =   'G';
+    // a[2] =   'T';
+    // a[3] =   'G';
+    // a[4] =   'A';
+    // a[5] =   'A';
+    // a[6] =   'T';
+    // a[7] =   'T';
+    // a[8] =   'C';
+    // a[9] =   'A';
+    // a[10] =  'T';
+
+    // b[0] =   'G';
+    // b[1] =   'A';
+    // b[2] =   'C';
+    // b[3] =   'T';
+    // b[4] =   'T';
+    // b[5] =   'A';
+    // b[6] =   'C';
+
 
     //Start position for backtrack
-    int maxPos = 0;
+    long long int maxPos = 0;
+    //Calculates the similarity matrix
+    long long int i, j;
 
     //Gets Initial time
     double initialTime = omp_get_wtime();
 
+    long long int si, sj, ai, aj;
 
-    //Calculates the similarity Matrix
-    int nDiag = m+n-1;
-    #pragma omp parallel num_threads(thread_count) private(i)
+    //Because now we have zeros ((m-1) + (n-1) - 1)
+    long long int nDiag = m + n - 3;
+    long long int nEle;
+
+    #pragma omp parallel num_threads(thread_count) \
+    default(none) shared(H, P, maxPos, nDiag) private(nEle, i, si, sj, ai, aj)
     {
-        for (i = 0; i < nDiag; ++i)
+        for (i = 1; i <= nDiag; ++i)
         {
-        	int nEle = nElement(i);
+            nEle = nElement(i);
+            calcFirstDiagElement(&i, &si, &sj);
             #pragma omp for
-                for (j = 0; j < nEle; ++j)
-                {
-                    int si, sj;
-                    calcIndex(i, j, &si, &sj);
-                    similarityScore(si, sj, H, P, B, &maxPos);
-                }
+            for (j = 1; j <= nEle; ++j)
+            {
+                ai = si - j + 1;
+                aj = sj + j - 1;
+                similarityScore(ai, aj, H, P, &maxPos);
+            }
         }
     }
 
-    backtrack(B, maxPos);
+    backtrack(P, maxPos);
 
     //Gets final time
     double finalTime = omp_get_wtime();
-    printf("\nElapsed time: %f\n",finalTime-initialTime);
+    printf("\nElapsed time: %f\n\n", finalTime - initialTime);
 
-    //printf("\nSimilarity Matrix:\n");
-    //printMatrix(H);
+#ifdef DEBUG
+    printf("\nSimilarity Matrix:\n");
+    printMatrix(H);
 
-    //printf("\nPredecessor Matrix:\n");
-    //printPredecessorMatrix(P, B);
-    //Frees similarity matrixs
+    printf("\nPredecessor Matrix:\n");
+    printPredecessorMatrix(P);
+#endif
+
+    //Frees similarity matrixes
     free(H);
     free(P);
-    free(B);
 
+    //Frees input arrays
+    free(a);
+    free(b);
 
     return 0;
 }  /* End of main */
@@ -180,20 +185,20 @@ int main(int argc, char* argv[]) {
  * Function:    nElement
  * Purpose:     Calculate the number of i-diagonal elements
  */
-int nElement(int i) {
-    if (i < m && i < n){
-    	//Number of elements in the diagonal is increasing
-        return i+1;
-	}
-    else if(i < max(m,n)){
-    	//Number of elements in the diagonal is stable
-        int min = min(m,n);
-        return min;
+long long int nElement(long long int i) {
+    if (i < m && i < n) {
+        //Number of elements in the diagonal is increasing
+        return i;
+    }
+    else if (i < max(m, n)) {
+        //Number of elements in the diagonal is stable
+        long int min = min(m, n);
+        return min - 1;
     }
     else {
-    	//Number of elements in the diagonal is decreasing
-        int min = min(m,n);
-        return 2*min - i + abs(m-n) - 1;
+        //Number of elements in the diagonal is decreasing
+        long int min = min(m, n);
+        return 2 * min - i + abs(m - n) - 2;
     }
 }
 
@@ -201,61 +206,42 @@ int nElement(int i) {
  * Function:    calcElement
  * Purpose:     Calculate the position of (si, sj)-element
  */
-void calcIndex(int i, int j, int *si, int *sj) {
+void calcFirstDiagElement(long long int *i, long long int *si, long long int *sj) {
     // Calculate the first element of diagonal
-    if (i < n) {
-        *si = i;
-        *sj = 0;
+    if (*i < n) {
+        *si = *i;
+        *sj = 1;
     } else {
-        *si = n-1;
-        *sj = i-n+1;
+        *si = n - 1;
+        *sj = *i - n + 2;
     }
-    // Calculate the current element of diagonal
-    *si -= j;
-    *sj += j;
 }
 
 /*--------------------------------------------------------------------
  * Function:    SimilarityScore
- * Purpose:     Calculate the maximum Similarity-Score H(i,j)
+ * Purpose:     Calculate  the maximum Similarity-Score H(i,j)
  */
-void similarityScore(int i, int j, int* H, int* P, int* B, int* maxPos) {
+void similarityScore(long long int i, long long int j, int* H, int* P, long long int* maxPos) {
 
     int up, left, diag;
 
     //Stores index of element
-    int index = m * i + j;
+    long long int index = m * i + j;
 
     //Get element above
-    if (i == 0) {
-        up = gapScore;
-    }
-    else {
-        up = H[index - m] + gapScore;
-    }
+    up = H[index - m] + gapScore;
 
     //Get element on the left
-    if (j == 0) {
-        left = gapScore;
-    }
-    else {
-        left = H[index - 1] + gapScore;
-    }
+    left = H[index - 1] + gapScore;
 
     //Get element on the diagonal
-    if (j == 0 || i == 0) {
-        diag = matchMissmatchScore(i, j);
-    }
-    else {
-        diag = H[index - m - 1] + matchMissmatchScore(i, j);
-    }
+    diag = H[index - m - 1] + matchMissmatchScore(i, j);
 
     //Calculates the maximum
     int max = NONE;
     int pred = NONE;
-    int predPos = NONE;
     /* === Matrix ===
-     * a[0] ... a[n] 
+     *      a[0] ... a[n]
      * b[0]
      * ...
      * b[n]
@@ -263,41 +249,34 @@ void similarityScore(int i, int j, int* H, int* P, int* B, int* maxPos) {
      * generate 'a' from 'b', if '←' insert e '↑' remove
      * a=GAATTCA
      * b=GACTT-A
-     * 
+     *
      * generate 'b' from 'a', if '←' insert e '↑' remove
      * b=GACTT-A
      * a=GAATTCA
     */
-    if (up > max) { //remove letter ↑ 
-        max = up;
-        pred = UP;
-        predPos = index - m;
-    }
-    if (left > max) { //insert letter ←
-        max = left;
-        pred = LEFT;
-        predPos = index - 1;
-    }
+
     if (diag > max) { //same letter ↖
         max = diag;
         pred = DIAGONAL;
-        predPos = index - m - 1;
+    }
+
+    if (up > max) { //remove letter ↑
+        max = up;
+        pred = UP;
+    }
+
+    if (left > max) { //insert letter ←
+        max = left;
+        pred = LEFT;
     }
     //Inserts the value in the similarity and predecessor matrixes
     H[index] = max;
     P[index] = pred;
 
-    //Check if predecessor position is valid
-    //first line has to go left and first col has to go up 
-    // if ((i != 0 && j != 0) || i == 0 && pred == LEFT || j == 0 && pred == UP)
-        B[index] = predPos;
-    // else
-        // B[index] = 0;
-
-    //Updates maximum score to be used as seed on backtrack 
+    //Updates maximum score to be used as seed on backtrack
     if (max > H[*maxPos]) {
         #pragma omp critical
-            *maxPos = index;
+        *maxPos = index;
     }
 
 }  /* End of similarityScore */
@@ -307,10 +286,9 @@ void similarityScore(int i, int j, int* H, int* P, int* B, int* maxPos) {
  * Function:    matchMissmatchScore
  * Purpose:     Similarity function on the alphabet for match/missmatch
  */
-int matchMissmatchScore(int i, int j) {
-    if (a[j] == b[i]){
+int matchMissmatchScore(long long int i, long long int j) {
+    if (a[j - 1] == b[i - 1])
         return matchScore;
-    }
     else
         return missmatchScore;
 }  /* End of matchMissmatchScore */
@@ -319,20 +297,21 @@ int matchMissmatchScore(int i, int j) {
  * Function:    backtrack
  * Purpose:     Modify matrix to print, path change from value to PATH
  */
-void backtrack(int* B, int maxPos) {
+void backtrack(int* P, long long int maxPos) {
     //hold maxPos value
-    int predPos;
+    long long int predPos;
 
-    //backtrack from maxPos to startPos = 0 
+    //backtrack from maxPos to startPos = 0
     do {
-        predPos = B[maxPos];
-        B[maxPos] = PATH;
+        if (P[maxPos] == DIAGONAL)
+            predPos = maxPos - m - 1;
+        else if (P[maxPos] == UP)
+            predPos = maxPos - m;
+        else if (P[maxPos] == LEFT)
+            predPos = maxPos - 1;
+        P[maxPos] *= PATH;
         maxPos = predPos;
-    } while(B[maxPos] != 0);
-     
-    //sets start '0' to '-1'
-    B[maxPos] = PATH;
-
+    } while (P[maxPos] != NONE);
 }  /* End of backtrack */
 
 /*--------------------------------------------------------------------
@@ -340,7 +319,7 @@ void backtrack(int* B, int maxPos) {
  * Purpose:     Print Matrix
  */
 void printMatrix(int* matrix) {
-    int i, j;
+    long long int i, j;
     for (i = 0; i < n; i++) { //Lines
         for (j = 0; j < m; j++) {
             printf("%d\t", matrix[m * i + j]);
@@ -354,26 +333,31 @@ void printMatrix(int* matrix) {
  * Function:    printPredecessorMatrix
  * Purpose:     Print predecessor matrix
  */
-void printPredecessorMatrix(int* matrix, int* B) {
-    int i, j, index, path;
+void printPredecessorMatrix(int* matrix) {
+    long long int i, j, index;
     for (i = 0; i < n; i++) { //Lines
         for (j = 0; j < m; j++) {
             index = m * i + j;
-            path = B[index] + 1;
-            if (matrix[index] == UP) {
-                if (path) printf("↑ ");
-                else printf(BOLDRED "↑ " RESET);
-            }
-            else if (matrix[index] == LEFT) {
-                if (path) printf("← ");
-                else printf(BOLDRED "← " RESET);
-            }
-            else if (matrix[index] == DIAGONAL) {
-                if (path) printf("↖ ");
-                else printf(BOLDRED "↖ " RESET);
-            }
-            else {
-                printf("- ");
+            if (matrix[index] < 0) {
+                printf(BOLDRED);
+                if (matrix[index] == -UP)
+                    printf("↑ ");
+                else if (matrix[index] == -LEFT)
+                    printf("← ");
+                else if (matrix[index] == -DIAGONAL)
+                    printf("↖ ");
+                else
+                    printf("- ");
+                printf(RESET);
+            } else {
+                if (matrix[index] == UP)
+                    printf("↑ ");
+                else if (matrix[index] == LEFT)
+                    printf("← ");
+                else if (matrix[index] == DIAGONAL)
+                    printf("↖ ");
+                else
+                    printf("- ");
             }
         }
         printf("\n");
@@ -382,19 +366,40 @@ void printPredecessorMatrix(int* matrix, int* B) {
 }  /* End of printPredecessorMatrix */
 
 /*--------------------------------------------------------------------
- * Function:    printPositionMatrix
- * Purpose:     Similarity function on the alphabet for match/missmatch
+ * Function:    generate
+ * Purpose:     Generate arrays a and b
  */
-void printPositionMatrix(void) {
-    int i, j;
-    for (i = 0; i < n; i++) { //Lines
-        for (j = 0; j < m; j++) {
-            printf("%d\t", m*i+j);
-        }
-        printf("\n");
-    }
-}  /* End of printPositionMatrix */
+void generate() {
+    //Random seed
+    srand(time(NULL));
 
+    //Generates the values of a
+    long long int i;
+    for (i = 0; i < m; i++) {
+        int aux = rand() % 4;
+        if (aux == 0)
+            a[i] = 'A';
+        else if (aux == 2)
+            a[i] = 'C';
+        else if (aux == 3)
+            a[i] = 'G';
+        else
+            a[i] = 'T';
+    }
+
+    //Generates the values of b
+    for (i = 0; i < n; i++) {
+        int aux = rand() % 4;
+        if (aux == 0)
+            b[i] = 'A';
+        else if (aux == 2)
+            b[i] = 'C';
+        else if (aux == 3)
+            b[i] = 'G';
+        else
+            b[i] = 'T';
+    }
+} /* End of generate */
 
 
 /*--------------------------------------------------------------------
