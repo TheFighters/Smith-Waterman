@@ -1,5 +1,5 @@
 # Smith-Waterman Algorithm in OpenMP
-A highly efficient ans simple implementation of the Smith-Waterman algorithm for local alignment of sequences.
+A highly efficient and simple implementation of the Smith-Waterman algorithm for local alignment of sequences.
 
 
 ## Sample Output
@@ -53,4 +53,4 @@ All pull requests are welcome !
 This project was develloped by [Daniel Holanda](https://github.com/danielholanda/), [Hanoch Griner](https://github.com/eugriner) and [Taynara Pinheiro](https://github.com/taypi).
 
 ## License
-This project uses the MIT license. See [LICENSE](https://github.com/danielholanda/Smith-Waterman/blob/master/LICENSE) for more details.
+This project uses the MIT license. See [LICENSE](https://github.com/TheFighters/Smith-Waterman/blob/master/LICENSE) for more details.
