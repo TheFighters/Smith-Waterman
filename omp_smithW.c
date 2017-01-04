@@ -1,8 +1,10 @@
-/***********************************************************************
+/*********************************************************************************
  * Smith–Waterman algorithm
  * Purpose:     Local alignment of nucleotide or protein sequences
  * Authors:     Daniel Holanda, Hanoch Griner, Taynara Pinheiro
- ***********************************************************************/
+ * Compilation: gcc omp_smithW.c -o omp_smithW -fopenmp -DDEBUG
+ * Execution:	./omp_smithW <number_of_threads> <number_of_col> <number_of_rows>
+ *********************************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -320,8 +322,14 @@ void backtrack(int* P, long long int maxPos) {
  */
 void printMatrix(int* matrix) {
     long long int i, j;
+    printf("-\t-\t");
+    for (j = 0; j < m-1; j++) {
+    	printf("%c\t", a[j]);
+    }
+    printf("\n-\t");
     for (i = 0; i < n; i++) { //Lines
-        for (j = 0; j < m; j++) {
+        for (j = 0; j < m; j++) {  
+        	if (j==0 && i>0) printf("%c\t", b[i-1]);
             printf("%d\t", matrix[m * i + j]);
         }
         printf("\n");
@@ -335,8 +343,14 @@ void printMatrix(int* matrix) {
  */
 void printPredecessorMatrix(int* matrix) {
     long long int i, j, index;
+    printf("    ");
+    for (j = 0; j < m-1; j++) {
+    	printf("%c ", a[j]);
+    }
+    printf("\n  ");
     for (i = 0; i < n; i++) { //Lines
         for (j = 0; j < m; j++) {
+        	if (j==0 && i>0) printf("%c ", b[i-1]);
             index = m * i + j;
             if (matrix[index] < 0) {
                 printf(BOLDRED);
