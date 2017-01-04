@@ -3,7 +3,7 @@ A highly efficient ans simple implementation of the Smith-Waterman algorithm for
 
 
 ## Sample Output
-![Demo Doccou alpha](https://github.com/danielholanda/Smith-Waterman/raw/master/Media/sampleOutput.png?raw=true)
+![Demo Doccou alpha](https://github.com/TheFighters/Smith-Waterman/blob/master/Media/sampleOutput.png?raw=true)
 
 
 ## How to Use
@@ -35,6 +35,12 @@ A highly efficient ans simple implementation of the Smith-Waterman algorithm for
 You can help by reporting bugs, suggesting features, reviewing feature specifications or just by sharing your opinion.
 Use [GitHub Issues](https://github.com/TheFighters/Smith-Waterman/issues) for all of that.
 
+## To do
+* Display the result in a more user-friendly way.
+* Make speedup tests to show how OpenMP accelerated the code.
+* Add documentation about the diagonal approach used to implement the parallel algorithm.
+    
+    
 ## Contributing
 1. Fork the project.
 2. Create a branch for your new feature.
