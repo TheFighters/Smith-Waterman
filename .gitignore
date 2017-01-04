@@ -1,0 +1,20 @@
+# Temporary files and others #
+##############################
+*~
+*.o
+
+# Executable files #
+# ##################
+smithW
+omp_smithW
+smithW2
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
